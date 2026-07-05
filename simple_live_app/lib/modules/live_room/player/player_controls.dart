@@ -19,6 +19,8 @@ import 'package:simple_live_app/widgets/superchat_card.dart';
 import 'dart:async';
 import 'package:simple_live_core/simple_live_core.dart';
 
+const _playerBottomButtonCursor = SystemMouseCursors.click;
+
 Widget playerControls(
   VideoState videoState,
   LiveRoomController controller,
@@ -243,6 +245,7 @@ Widget buildFullControls(
               child: Row(
                 children: [
                   IconButton(
+                    mouseCursor: _playerBottomButtonCursor,
                     onPressed: () {
                       controller.refreshRoom();
                     },
@@ -254,6 +257,7 @@ Widget buildFullControls(
                   Offstage(
                     offstage: controller.showDanmakuState.value,
                     child: IconButton(
+                      mouseCursor: _playerBottomButtonCursor,
                       onPressed: () => controller.showDanmakuState.value =
                           !controller.showDanmakuState.value,
                       icon: const ImageIcon(
@@ -266,6 +270,7 @@ Widget buildFullControls(
                   Offstage(
                     offstage: !controller.showDanmakuState.value,
                     child: IconButton(
+                      mouseCursor: _playerBottomButtonCursor,
                       onPressed: () => controller.showDanmakuState.value =
                           !controller.showDanmakuState.value,
                       icon: const ImageIcon(
@@ -276,6 +281,7 @@ Widget buildFullControls(
                     ),
                   ),
                   IconButton(
+                    mouseCursor: _playerBottomButtonCursor,
                     onPressed: () {
                       showDanmakuSettings(controller);
                     },
@@ -300,6 +306,7 @@ Widget buildFullControls(
                     visible: !Platform.isAndroid && !Platform.isIOS,
                     child: IconButton(
                       key: volumeButtonkey,
+                      mouseCursor: _playerBottomButtonCursor,
                       onPressed: () {
                         controller
                             .showVolumeSlider(volumeButtonkey.currentContext!);
@@ -311,28 +318,40 @@ Widget buildFullControls(
                       ),
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      showQualitesInfo(controller);
-                    },
-                    child: Obx(
-                      () => Text(
-                        controller.currentQualityInfo.value,
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 15),
+                  MouseRegion(
+                    cursor: _playerBottomButtonCursor,
+                    child: TextButton(
+                      onPressed: () {
+                        showQualitesInfo(controller);
+                      },
+                      child: Obx(
+                        () => Text(
+                          controller.currentQualityInfo.value,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      showLinesInfo(controller);
-                    },
-                    child: Text(
-                      controller.currentLineInfo.value,
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                  MouseRegion(
+                    cursor: _playerBottomButtonCursor,
+                    child: TextButton(
+                      onPressed: () {
+                        showLinesInfo(controller);
+                      },
+                      child: Text(
+                        controller.currentLineInfo.value,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                        ),
+                      ),
                     ),
                   ),
                   IconButton(
+                    mouseCursor: _playerBottomButtonCursor,
                     onPressed: () {
                       if (controller.smallWindowState.value) {
                         controller.exitSmallWindow();
@@ -501,6 +520,7 @@ Widget buildControls(
             child: Row(
               children: [
                 IconButton(
+                  mouseCursor: _playerBottomButtonCursor,
                   onPressed: () {
                     controller.refreshRoom();
                   },
@@ -512,6 +532,7 @@ Widget buildControls(
                 Offstage(
                   offstage: controller.showDanmakuState.value,
                   child: IconButton(
+                    mouseCursor: _playerBottomButtonCursor,
                     onPressed: () => controller.showDanmakuState.value =
                         !controller.showDanmakuState.value,
                     icon: const ImageIcon(
@@ -524,6 +545,7 @@ Widget buildControls(
                 Offstage(
                   offstage: !controller.showDanmakuState.value,
                   child: IconButton(
+                    mouseCursor: _playerBottomButtonCursor,
                     onPressed: () => controller.showDanmakuState.value =
                         !controller.showDanmakuState.value,
                     icon: const ImageIcon(
@@ -534,6 +556,7 @@ Widget buildControls(
                   ),
                 ),
                 IconButton(
+                  mouseCursor: _playerBottomButtonCursor,
                   onPressed: () {
                     controller.showDanmuSettingsSheet();
                   },
@@ -557,6 +580,7 @@ Widget buildControls(
                   visible: !Platform.isAndroid && !Platform.isIOS,
                   child: IconButton(
                     key: volumeButtonkey,
+                    mouseCursor: _playerBottomButtonCursor,
                     onPressed: () {
                       controller.showVolumeSlider(
                         volumeButtonkey.currentContext!,
@@ -571,34 +595,46 @@ Widget buildControls(
                 ),
                 Offstage(
                   offstage: isPortrait,
-                  child: TextButton(
-                    onPressed: () {
-                      controller.showQualitySheet();
-                    },
-                    child: Obx(
-                      () => Text(
-                        controller.currentQualityInfo.value,
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 15),
+                  child: MouseRegion(
+                    cursor: _playerBottomButtonCursor,
+                    child: TextButton(
+                      onPressed: () {
+                        controller.showQualitySheet();
+                      },
+                      child: Obx(
+                        () => Text(
+                          controller.currentQualityInfo.value,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
                 Offstage(
                   offstage: isPortrait,
-                  child: TextButton(
-                    onPressed: () {
-                      controller.showPlayUrlsSheet();
-                    },
-                    child: Text(
-                      controller.currentLineInfo.value,
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                  child: MouseRegion(
+                    cursor: _playerBottomButtonCursor,
+                    child: TextButton(
+                      onPressed: () {
+                        controller.showPlayUrlsSheet();
+                      },
+                      child: Text(
+                        controller.currentLineInfo.value,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                        ),
+                      ),
                     ),
                   ),
                 ),
                 Visibility(
                   visible: !Platform.isAndroid && !Platform.isIOS,
                   child: IconButton(
+                    mouseCursor: _playerBottomButtonCursor,
                     onPressed: () {
                       controller.enterSmallWindow();
                     },
@@ -610,6 +646,7 @@ Widget buildControls(
                   ),
                 ),
                 IconButton(
+                  mouseCursor: _playerBottomButtonCursor,
                   onPressed: () {
                     controller.enterFullScreen();
                   },

@@ -106,6 +106,8 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
   // 开播时长状态变量
   var liveDuration = "00:00:00".obs;
   Timer? _liveDurationTimer;
+  bool _danmakuConnectionHealthy = false;
+  bool _danmakuReconnectNoticeShown = false;
 
   @override
   void onInit() {
@@ -196,6 +198,8 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
   /// 初始化弹幕接收事件
   void initDanmau() {
+    _danmakuConnectionHealthy = false;
+    _danmakuReconnectNoticeShown = false;
     liveDanmaku.onMessage = onWSMessage;
     liveDanmaku.onClose = onWSClose;
     liveDanmaku.onReady = onWSReady;
@@ -269,11 +273,22 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
   /// 接收到WebSocket关闭信息
   void onWSClose(String msg) {
-    addSysMsg(msg);
+    if (_danmakuConnectionHealthy) {
+      _danmakuConnectionHealthy = false;
+    }
+
+    if (_danmakuReconnectNoticeShown) {
+      return;
+    }
+
+    _danmakuReconnectNoticeShown = true;
+    addSysMsg("弹幕服务器连接失败，正在重试");
   }
 
   /// WebSocket准备就绪
   void onWSReady() {
+    _danmakuConnectionHealthy = true;
+    _danmakuReconnectNoticeShown = false;
     addSysMsg("弹幕服务器连接正常");
   }
 
@@ -1057,6 +1072,8 @@ ${error?.stackTrace}''');
     scrollController.removeListener(scrollListener);
     autoExitTimer?.cancel();
 
+    _danmakuConnectionHealthy = false;
+    _danmakuReconnectNoticeShown = false;
     liveDanmaku.stop();
     danmakuController = null;
     _liveDurationTimer?.cancel(); // 页面关闭时取消定时器

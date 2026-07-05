@@ -20,6 +20,7 @@ import 'package:simple_live_app/app/utils/listen_fourth_button.dart';
 import 'package:simple_live_app/models/db/follow_user.dart';
 import 'package:simple_live_app/models/db/follow_user_tag.dart';
 import 'package:simple_live_app/models/db/history.dart';
+import 'package:simple_live_app/modules/live_room/live_room_controller.dart';
 import 'package:simple_live_app/modules/other/debug_log_page.dart';
 import 'package:simple_live_app/routes/app_pages.dart';
 import 'package:simple_live_app/routes/route_path.dart';
@@ -57,6 +58,23 @@ void main() async {
   );
   SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
   runApp(const MyApp());
+}
+
+Future<bool> _tryExitPlayerDesktopFullScreen() async {
+  if (Platform.isAndroid || Platform.isIOS) {
+    return false;
+  }
+  if (!Get.isRegistered<LiveRoomController>()) {
+    return false;
+  }
+
+  final controller = Get.find<LiveRoomController>();
+  if (!controller.fullScreenState.value || controller.smallWindowState.value) {
+    return false;
+  }
+
+  await controller.exitFull();
+  return true;
 }
 
 /// 将Hive数据迁移到Application Support
@@ -249,8 +267,7 @@ class MyApp extends StatelessWidget {
                         instance.onTapDown = (TapDownDetails details) async {
                           //如果处于全屏状态，退出全屏
                           if (!Platform.isAndroid && !Platform.isIOS) {
-                            if (await windowManager.isFullScreen()) {
-                              await windowManager.setFullScreen(false);
+                            if (await _tryExitPlayerDesktopFullScreen()) {
                               return;
                             }
                           }
@@ -267,8 +284,7 @@ class MyApp extends StatelessWidget {
                         // ESC退出全屏
                         // 如果处于全屏状态，退出全屏
                         if (!Platform.isAndroid && !Platform.isIOS) {
-                          if (await windowManager.isFullScreen()) {
-                            await windowManager.setFullScreen(false);
+                          if (await _tryExitPlayerDesktopFullScreen()) {
                             return;
                           }
                         }

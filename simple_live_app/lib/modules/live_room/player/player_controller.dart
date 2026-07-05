@@ -229,7 +229,7 @@ mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
   final pip = Floating();
   StreamSubscription<PiPStatus>? _pipSubscription;
 
-  //final VolumeController volumeController = VolumeController();
+  bool get _isDesktopPlatform => !Platform.isAndroid && !Platform.isIOS;
 
   /// 初始化一些系统状态
   void initSystem() async {
@@ -272,30 +272,39 @@ mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
   }
 
   /// 进入全屏
-  void enterFullScreen() {
+  Future<void> enterFullScreen() async {
+    if (_isDesktopPlatform) {
+      fullScreenState.value = true;
+      await windowManager.setFullScreen(true);
+      return;
+    }
+
     fullScreenState.value = true;
-    if (Platform.isAndroid || Platform.isIOS) {
-      //全屏
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
-      if (!isVertical.value) {
-        //横屏
-        setLandscapeOrientation();
-      }
-    } else {
-      windowManager.setFullScreen(true);
+    //全屏
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [],
+    );
+    if (!isVertical.value) {
+      //横屏
+      await setLandscapeOrientation();
     }
     //danmakuController?.clear();
   }
 
   /// 退出全屏
-  void exitFull() {
-    if (Platform.isAndroid || Platform.isIOS) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge,
-          overlays: SystemUiOverlay.values);
-      setPortraitOrientation();
-    } else {
-      windowManager.setFullScreen(false);
+  Future<void> exitFull() async {
+    if (_isDesktopPlatform) {
+      await windowManager.setFullScreen(false);
+      fullScreenState.value = false;
+      return;
     }
+
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+      overlays: SystemUiOverlay.values,
+    );
+    await setPortraitOrientation();
     fullScreenState.value = false;
 
     //danmakuController?.clear();
@@ -306,7 +315,7 @@ mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
 
   ///小窗模式()
   void enterSmallWindow() async {
-    if (!(Platform.isAndroid || Platform.isIOS)) {
+    if (_isDesktopPlatform) {
       fullScreenState.value = true;
       smallWindowState.value = true;
 
@@ -314,7 +323,7 @@ mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
       _lastWindowSize = await windowManager.getSize();
       _lastWindowPosition = await windowManager.getPosition();
 
-      windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+      await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
       // 获取视频窗口大小
       var width = player.state.width ?? 16;
       var height = player.state.height ?? 9;
@@ -328,19 +337,19 @@ mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
         windowManager.setSize(Size(280 / aspectRatio, 280));
       }
 
-      windowManager.setAlwaysOnTop(true);
+      await windowManager.setAlwaysOnTop(true);
     }
   }
 
   ///退出小窗模式()
-  void exitSmallWindow() {
-    if (!(Platform.isAndroid || Platform.isIOS)) {
+  Future<void> exitSmallWindow() async {
+    if (_isDesktopPlatform) {
       fullScreenState.value = false;
       smallWindowState.value = false;
-      windowManager.setTitleBarStyle(TitleBarStyle.normal);
-      windowManager.setSize(_lastWindowSize!);
-      windowManager.setPosition(_lastWindowPosition!);
-      windowManager.setAlwaysOnTop(false);
+      await windowManager.setTitleBarStyle(TitleBarStyle.normal);
+      await windowManager.setSize(_lastWindowSize!);
+      await windowManager.setPosition(_lastWindowPosition!);
+      await windowManager.setAlwaysOnTop(false);
       //windowManager.setAlignment(Alignment.center);
     }
   }
@@ -658,9 +667,13 @@ class PlayerController extends BaseController
         PlayerStateMixin,
         PlayerDanmakuMixin,
         PlayerSystemMixin,
-        PlayerGestureControlMixin {
+        PlayerGestureControlMixin,
+        WindowListener {
   @override
   void onInit() {
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      windowManager.addListener(this);
+    }
     initSystem();
     initStream();
     //设置音量
@@ -839,10 +852,27 @@ class PlayerController extends BaseController
     if (smallWindowState.value) {
       exitSmallWindow();
     }
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      windowManager.removeListener(this);
+    }
     disposeStream();
     disposeDanmakuController();
     await resetSystem();
     await player.dispose();
     super.onClose();
+  }
+
+  @override
+  void onWindowEnterFullScreen() {
+    if (!smallWindowState.value) {
+      fullScreenState.value = true;
+    }
+  }
+
+  @override
+  void onWindowLeaveFullScreen() {
+    if (!smallWindowState.value) {
+      fullScreenState.value = false;
+    }
   }
 }

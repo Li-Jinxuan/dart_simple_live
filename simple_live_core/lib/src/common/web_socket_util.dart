@@ -10,6 +10,8 @@ enum SocketStatus {
 
 class WebScoketUtils {
   SocketStatus status = SocketStatus.closed;
+  bool _manuallyClosed = false;
+  bool _usingBackupUrl = false;
 
   /// 链接
   final String url;
@@ -55,13 +57,14 @@ class WebScoketUtils {
   int reconnectTime = 0;
   Timer? reconnectTimer;
 
-  /// 最大重连次数
-  int maxReconnectTime = 5;
-
   StreamSubscription<dynamic>? streamSubscription;
 
   void connect({bool retry = false}) async {
-    close();
+    reconnectTimer?.cancel();
+    reconnectTimer = null;
+    _manuallyClosed = false;
+    _usingBackupUrl = retry;
+    _disposeActiveConnection();
     try {
       var wsurl = url;
       if (backupUrl != null && backupUrl!.isNotEmpty && retry) {
@@ -76,11 +79,10 @@ class WebScoketUtils {
       await webSocket?.ready;
       ready();
     } catch (e) {
-      if (!retry) {
-        connect(retry: true);
-        return;
-      }
       onError(e, e);
+      if (!_manuallyClosed) {
+        reconnect();
+      }
     }
   }
 
@@ -110,16 +112,21 @@ class WebScoketUtils {
   void receiveMessage(dynamic data) {
     //接受到一条信息才算重连成功
     reconnectTime = 0;
+    reconnectTimer?.cancel();
+    reconnectTimer = null;
     onMessage?.call(data);
   }
 
   void onError(e, s) {
+    if (_manuallyClosed) {
+      return;
+    }
     status = SocketStatus.failed;
     onClose?.call(e.toString());
   }
 
   void onDone() {
-    if (status == SocketStatus.closed) {
+    if (status == SocketStatus.closed || _manuallyClosed) {
       return;
     }
     onReconnect?.call();
@@ -133,32 +140,41 @@ class WebScoketUtils {
   }
 
   void close() {
+    _manuallyClosed = true;
     status = SocketStatus.closed;
-
-    streamSubscription?.cancel();
-
+    reconnectTime = 0;
     reconnectTimer?.cancel();
     reconnectTimer = null;
-
-    webSocket?.sink.close();
-
-    heartBeatTimer?.cancel();
-    heartBeatTimer = null;
+    _disposeActiveConnection();
   }
 
   void reconnect() {
-    status = SocketStatus.closed;
-    if (reconnectTime < maxReconnectTime) {
-      reconnectTime++;
-      reconnectTimer ??= Timer.periodic(Duration(seconds: 5), (timer) {
-        connect();
-      });
-    } else {
-      onClose?.call("重连超过最大次数，与服务器断开连接");
-      reconnectTimer?.cancel();
-      reconnectTimer = null;
-      close();
+    if (_manuallyClosed) {
       return;
     }
+    status = SocketStatus.closed;
+    reconnectTime++;
+    reconnectTimer ??= Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (_manuallyClosed) {
+        timer.cancel();
+        reconnectTimer = null;
+        return;
+      }
+      final shouldTryBackup = backupUrl != null &&
+          backupUrl!.isNotEmpty &&
+          !_usingBackupUrl;
+      connect(retry: shouldTryBackup);
+    });
+  }
+
+  void _disposeActiveConnection() {
+    streamSubscription?.cancel();
+    streamSubscription = null;
+
+    webSocket?.sink.close();
+    webSocket = null;
+
+    heartBeatTimer?.cancel();
+    heartBeatTimer = null;
   }
 }
