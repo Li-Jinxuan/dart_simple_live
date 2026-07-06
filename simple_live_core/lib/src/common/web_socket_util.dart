@@ -154,7 +154,7 @@ class WebScoketUtils {
     }
     status = SocketStatus.closed;
     reconnectTime++;
-    reconnectTimer ??= Timer.periodic(const Duration(seconds: 5), (timer) {
+    reconnectTimer ??= Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_manuallyClosed) {
         timer.cancel();
         reconnectTimer = null;

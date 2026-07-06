@@ -181,7 +181,7 @@ class FollowUserPage extends GetView<FollowUserController> {
   void setFollowTagDialog(FollowUser item) {
     /// 控制单选ui
     List<FollowUserTag> copiedList = [
-      controller.tagList.first,
+      controller.tagList.firstWhere((tag) => tag.tag == "全部"),
       ...controller.tagList.skip(3),
     ];
     Rx<FollowUserTag> checkTag =

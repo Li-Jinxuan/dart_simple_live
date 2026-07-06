@@ -223,26 +223,31 @@ class FollowService extends GetxService {
   }
 
   Future updateLiveStatus(FollowUser item) async {
+    int nextLiveStatus = item.liveStatus.value;
+    String? nextLiveStartTime = item.liveStartTime;
+
     try {
       var site = Sites.allSites[item.siteId]!;
       // 先只查状态
       var isLiving = await site.liveSite.getLiveStatus(roomId: item.roomId);
-      item.liveStatus.value = isLiving ? 2 : 1;
-      if (item.liveStatus.value == 2) {
+      nextLiveStatus = isLiving ? 2 : 1;
+      if (nextLiveStatus == 2) {
         // 只有正在直播时才查详细信息
         var detail = await site.liveSite.getRoomDetail(roomId: item.roomId);
-        item.liveStartTime = detail.showTime;
+        nextLiveStartTime = detail.showTime;
       } else {
-        item.liveStartTime = null;
+        nextLiveStartTime = null;
       }
     } catch (e) {
       Log.logPrint(e);
-      item.liveStatus.value = 0;
-      item.liveStartTime = null;
+      nextLiveStatus = 0;
+      nextLiveStartTime = null;
     } finally {
+      item.liveStatus.value = nextLiveStatus;
+      item.liveStartTime = nextLiveStartTime;
       updatedCount++;
+      filterData();
       if (updatedCount >= followList.length) {
-        filterData();
         updating.value = false;
       }
     }

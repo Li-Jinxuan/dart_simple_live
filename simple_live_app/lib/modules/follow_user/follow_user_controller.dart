@@ -16,12 +16,12 @@ class FollowUserController extends BasePageController<FollowUser> {
   StreamSubscription<dynamic>? onUpdatedIndexedStream;
   StreamSubscription<dynamic>? onUpdatedListStream;
 
-  /// 0:全部 1:直播中 2:未直播
-  var filterMode = FollowUserTag(id: "0", tag: "全部", userId: []).obs;
+  /// 默认系统标签顺序：直播中 / 未开播 / 全部
+  var filterMode = FollowUserTag(id: "1", tag: "直播中", userId: []).obs;
   RxList<FollowUserTag> tagList = [
-    FollowUserTag(id: "0", tag: "全部", userId: []),
     FollowUserTag(id: "1", tag: "直播中", userId: []),
     FollowUserTag(id: "2", tag: "未开播", userId: []),
+    FollowUserTag(id: "0", tag: "全部", userId: []),
   ].obs;
 
   // 用户自定义标签
@@ -41,14 +41,22 @@ class FollowUserController extends BasePageController<FollowUser> {
         FollowService.instance.updatedListStream.listen((event) {
       filterData();
     });
+    updateTagList();
     super.onInit();
   }
 
   @override
   Future refreshData() async {
+    currentPage = 1;
+    canLoadMore.value = false;
+    pageError.value = false;
+    pageEmpty.value = false;
+    notLogin.value = false;
+    pageLoadding.value = true;
     await FollowService.instance.loadData();
     updateTagList();
-    super.refreshData();
+    filterData();
+    pageLoadding.value = false;
   }
 
   @override
@@ -70,7 +78,11 @@ class FollowUserController extends BasePageController<FollowUser> {
 
   void updateTagList() {
     userTagList.assignAll(FollowService.instance.followTagList);
-    tagList.value = tagList.take(3).toList();
+    tagList.value = [
+      FollowUserTag(id: "1", tag: "直播中", userId: []),
+      FollowUserTag(id: "2", tag: "未开播", userId: []),
+      FollowUserTag(id: "0", tag: "全部", userId: []),
+    ];
     for (var i in userTagList) {
       if (!tagList.contains(i)) {
         tagList.add(i);
@@ -89,6 +101,7 @@ class FollowUserController extends BasePageController<FollowUser> {
       FollowService.instance.filterDataByTag(filterMode.value);
       list.assignAll(FollowService.instance.curTagFollowList);
     }
+    pageEmpty.value = list.isEmpty;
   }
 
   void setFilterMode(FollowUserTag tag) {
