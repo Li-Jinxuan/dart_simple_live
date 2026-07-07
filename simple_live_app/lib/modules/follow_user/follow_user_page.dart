@@ -152,7 +152,7 @@ class FollowUserPage extends GetView<FollowUserController> {
               crossAxisSpacing: 12,
               crossAxisCount: count,
               pageController: controller,
-              firstRefresh: true,
+              firstRefresh: false,
               showPCRefreshButton: false,
               itemBuilder: (_, i) {
                 var item = controller.list[i];

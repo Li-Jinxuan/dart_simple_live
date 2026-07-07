@@ -42,6 +42,7 @@ class FollowUserController extends BasePageController<FollowUser> {
       filterData();
     });
     updateTagList();
+    Future.microtask(() => refreshData());
     super.onInit();
   }
 
@@ -208,6 +209,7 @@ class FollowUserController extends BasePageController<FollowUser> {
   @override
   void onClose() {
     onUpdatedIndexedStream?.cancel();
+    onUpdatedListStream?.cancel();
     super.onClose();
   }
 }
