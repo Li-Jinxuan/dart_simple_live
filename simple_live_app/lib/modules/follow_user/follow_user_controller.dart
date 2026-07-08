@@ -61,6 +61,12 @@ class FollowUserController extends BasePageController<FollowUser> {
   }
 
   @override
+  Future loadData() async {
+    canLoadMore.value = false;
+    return;
+  }
+
+  @override
   Future<List<FollowUser>> getData(int page, int pageSize) async {
     if (page > 1) {
       return Future.value([]);
