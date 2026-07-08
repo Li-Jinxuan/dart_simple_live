@@ -145,6 +145,7 @@ Widget buildFullControls(
               child: Row(
                 children: [
                   IconButton(
+                    mouseCursor: _playerBottomButtonCursor,
                     onPressed: () {
                       if (controller.smallWindowState.value) {
                         controller.exitSmallWindow();
@@ -169,6 +170,7 @@ Widget buildFullControls(
                   ),
                   AppStyle.hGap12,
                   IconButton(
+                    mouseCursor: _playerBottomButtonCursor,
                     onPressed: () {
                       controller.saveScreenshot();
                     },
@@ -179,6 +181,7 @@ Widget buildFullControls(
                     ),
                   ),
                   IconButton(
+                    mouseCursor: _playerBottomButtonCursor,
                     onPressed: () {
                       showFollowUser(controller);
                     },
@@ -191,6 +194,7 @@ Widget buildFullControls(
                   Visibility(
                     visible: Platform.isAndroid,
                     child: IconButton(
+                      mouseCursor: _playerBottomButtonCursor,
                       onPressed: () {
                         controller.enablePIP();
                       },
@@ -202,6 +206,7 @@ Widget buildFullControls(
                     ),
                   ),
                   IconButton(
+                    mouseCursor: _playerBottomButtonCursor,
                     onPressed: () {
                       showPlayerSettings(controller);
                     },

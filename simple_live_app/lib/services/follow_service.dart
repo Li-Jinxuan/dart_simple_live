@@ -143,11 +143,16 @@ class FollowService extends GetxService {
     if (list.isEmpty) {
       updating.value = false;
       followList.assignAll(list);
+      liveList.clear();
+      notLiveList.clear();
+      _updatedListController.add(0);
       return;
     }
     followList.assignAll(list);
     if (updateStatus) {
-      startUpdateStatus();
+      await startUpdateStatus();
+    } else {
+      filterData();
     }
   }
 
@@ -189,7 +194,7 @@ class FollowService extends GetxService {
     return result;
   }
 
-  void startUpdateStatus() async {
+  Future<void> startUpdateStatus() async {
     updatedCount = 0;
     updating.value = true;
 
@@ -219,6 +224,8 @@ class FollowService extends GetxService {
 
     await Future.wait(workers);
 
+    filterData();
+    updating.value = false;
     Log.logPrint("关注状态更新完成");
   }
 
@@ -246,10 +253,6 @@ class FollowService extends GetxService {
       item.liveStatus.value = nextLiveStatus;
       item.liveStartTime = nextLiveStartTime;
       updatedCount++;
-      filterData();
-      if (updatedCount >= followList.length) {
-        updating.value = false;
-      }
     }
   }
 
