@@ -111,7 +111,7 @@ class FollowService extends GetxService {
     }
     // 标签内排序
     curTagFollowList.sort(
-      (a, b) => b.liveStatus.value.compareTo(a.liveStatus.value),
+      compareFollowUsers,
     );
   }
 
@@ -159,7 +159,8 @@ class FollowService extends GetxService {
   /// 获取最优并发数
   /// 根据 CPU 核心数和用户设置自动计算
   int getOptimalConcurrency() {
-    var userSetting = AppSettingsController.instance.updateFollowThreadCount.value;
+    var userSetting =
+        AppSettingsController.instance.updateFollowThreadCount.value;
 
     // 如果用户设置为 0，则自动根据 CPU 核心数计算
     if (userSetting == 0) {
@@ -232,6 +233,7 @@ class FollowService extends GetxService {
   Future updateLiveStatus(FollowUser item) async {
     int nextLiveStatus = item.liveStatus.value;
     String? nextLiveStartTime = item.liveStartTime;
+    int nextOnline = 0;
 
     try {
       var site = Sites.allSites[item.siteId]!;
@@ -242,6 +244,7 @@ class FollowService extends GetxService {
         // 只有正在直播时才查详细信息
         var detail = await site.liveSite.getRoomDetail(roomId: item.roomId);
         nextLiveStartTime = detail.showTime;
+        nextOnline = detail.online;
       } else {
         nextLiveStartTime = null;
       }
@@ -252,15 +255,37 @@ class FollowService extends GetxService {
     } finally {
       item.liveStatus.value = nextLiveStatus;
       item.liveStartTime = nextLiveStartTime;
+      item.online = nextOnline;
       updatedCount++;
     }
   }
 
   void filterData() {
-    followList.sort((a, b) => b.liveStatus.value.compareTo(a.liveStatus.value));
+    followList.sort(compareFollowUsers);
     liveList.assignAll(followList.where((x) => x.liveStatus.value == 2));
     notLiveList.assignAll(followList.where((x) => x.liveStatus.value == 1));
     _updatedListController.add(0);
+  }
+
+  /// 直播中优先，直播用户再按热度从高到低，最后按关注时间稳定排序。
+  static int compareFollowUsers(FollowUser a, FollowUser b) {
+    final statusComparison = b.liveStatus.value.compareTo(a.liveStatus.value);
+    if (statusComparison != 0) {
+      return statusComparison;
+    }
+
+    if (a.liveStatus.value == 2) {
+      final onlineComparison = b.online.compareTo(a.online);
+      if (onlineComparison != 0) {
+        return onlineComparison;
+      }
+    }
+
+    final addTimeComparison = a.addTime.compareTo(b.addTime);
+    if (addTimeComparison != 0) {
+      return addTimeComparison;
+    }
+    return a.id.compareTo(b.id);
   }
 
   void exportFile() async {
