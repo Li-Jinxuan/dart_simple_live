@@ -30,7 +30,6 @@ class DouyuWebLoginPage extends GetView<DouyuWebLoginController> {
                   SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                  child: Text(
                       "使用手机验证码登录斗鱼，登录后可观看2K及以上清晰度，登录完成后会自动返回。",
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),

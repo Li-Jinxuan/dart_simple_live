@@ -32,6 +32,13 @@ set(CMAKE_CXX_FLAGS_PROFILE "${CMAKE_CXX_FLAGS_RELEASE}")
 # Use Unicode for all projects.
 add_definitions(-DUNICODE -D_UNICODE)
 
+# VS生成工具2026(MSVC 14.51)将<experimental/coroutine>从警告升级为硬错误(STL1011)，
+# flutter_inappwebview_windows/permission_handler_windows仍在使用旧协程头，需抑制
+add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
+# 中文系统代码页(936)下插件源码中的UTF-8字符触发C4819，插件的/WX会将其升级为错误
+add_compile_options(/wd4819)
+
 # Compilation settings that should be applied to most targets.
 #
 # Be cautious about adding new options here, as plugins use this function by
