@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:simple_live_app/app/app_style.dart';
 import 'package:simple_live_app/app/sites.dart';
 import 'package:simple_live_app/modules/follow_user/follow_user_controller.dart';
 import 'package:simple_live_app/routes/app_navigation.dart';
 import 'package:simple_live_app/services/follow_service.dart';
-import 'package:simple_live_app/widgets/filter_button.dart';
 import 'package:simple_live_app/widgets/follow_user_item.dart';
 import 'package:simple_live_app/widgets/page_grid_view.dart';
 
@@ -39,55 +37,23 @@ class FollowUserPage extends GetView<FollowUserController> {
                 ),
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: AppStyle.edgeInsetsL8,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Obx(
-                    () => SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Wrap(
-                          spacing: 12,
-                          children: controller.tagList.map((option) {
-                            return FilterButton(
-                              text: option.tag,
-                              selected: controller.filterMode.value == option,
-                              onTap: () {
-                                controller.setFilterMode(option);
-                              },
-                            );
-                          }).toList()),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: PageGridView(
-              crossAxisSpacing: 12,
-              crossAxisCount: count,
-              pageController: controller,
-              firstRefresh: false,
-              showPCRefreshButton: false,
-              itemBuilder: (_, i) {
-                var item = controller.list[i];
-                var site = Sites.allSites[item.siteId]!;
-                return FollowUserItem(
-                  item: item,
-                  onTap: () {
-                    AppNavigator.toLiveRoomDetail(
-                        site: site, roomId: item.roomId);
-                  },
-                );
-              },
-            ),
-          ),
-        ],
+      body: PageGridView(
+        crossAxisSpacing: 12,
+        crossAxisCount: count,
+        pageController: controller,
+        firstRefresh: false,
+        showPCRefreshButton: false,
+        itemBuilder: (_, i) {
+          var item = controller.list[i];
+          var site = Sites.allSites[item.siteId]!;
+          return FollowUserItem(
+            item: item,
+            onTap: () {
+              AppNavigator.toLiveRoomDetail(
+                  site: site, roomId: item.roomId);
+            },
+          );
+        },
       ),
     );
   }

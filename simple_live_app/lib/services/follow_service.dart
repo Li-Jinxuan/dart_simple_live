@@ -24,9 +24,6 @@ class FollowService extends GetxService {
   /// 直播中的用户列表
   RxList<FollowUser> liveList = RxList<FollowUser>();
 
-  /// 未直播的用户列表
-  RxList<FollowUser> notLiveList = RxList<FollowUser>();
-
   /// 是否正在更新
   var updating = false.obs;
 
@@ -122,7 +119,6 @@ class FollowService extends GetxService {
   void filterData() {
     followList.sort(compareFollowUsers);
     liveList.assignAll(followList.where((x) => x.liveStatus.value == 2));
-    notLiveList.assignAll(followList.where((x) => x.liveStatus.value == 1));
     _updatedListController.add(0);
   }
 
