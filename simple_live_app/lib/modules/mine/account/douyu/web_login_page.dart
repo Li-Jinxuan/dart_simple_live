@@ -43,6 +43,7 @@ class DouyuWebLoginPage extends GetView<DouyuWebLoginController> {
           Expanded(
             child: InAppWebView(
               onWebViewCreated: controller.onWebViewCreated,
+              onLoadStart: controller.onLoadStart,
               onLoadStop: controller.onLoadStop,
               initialSettings: InAppWebViewSettings(
                 userAgent:

@@ -23,11 +23,17 @@ class DouyuWebLoginController extends BaseController {
         ),
       ),
     );
-    //通过轮询Cookie检测 acf_auth 是否出现
+    //轮询仅作兜底：登录Cookie由接口响应种下，正常由下面的导航事件更早检测到
     checkTimer = Timer.periodic(
-      const Duration(milliseconds: 1500),
+      const Duration(milliseconds: 1000),
       (timer) => checkLogin(),
     );
+  }
+
+  /// 登录成功后passport会跳转到斗鱼域，导航开始的瞬间Cookie已种好，
+  /// 这里是事件驱动的最早检测点
+  void onLoadStart(InAppWebViewController controller, Uri? uri) {
+    checkLogin();
   }
 
   void onLoadStop(InAppWebViewController controller, Uri? uri) {
