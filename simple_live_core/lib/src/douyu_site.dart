@@ -25,6 +25,10 @@ class DouyuSite implements LiveSite {
   @override
   String name = "斗鱼直播";
 
+  /// 登录Cookie，用于获取2K及以上清晰度
+  /// 斗鱼对未登录请求会静默降低画质（最高蓝光4M）
+  String cookie = "";
+
   @override
   LiveDanmaku getDanmaku() => DouyuDanmaku();
 
@@ -101,6 +105,7 @@ class DouyuSite implements LiveSite {
     var result = await HttpClient.instance.postJson(
       "https://www.douyu.com/lapi/live/getH5Play/${detail.roomId}",
       data: data,
+      header: buildPlayRequestHeaders(detail.roomId),
       formUrlEncoded: true,
     );
 
@@ -158,15 +163,24 @@ class DouyuSite implements LiveSite {
     var result = await HttpClient.instance.postJson(
       "https://www.douyu.com/lapi/live/getH5Play/$roomId",
       data: args,
-      header: {
-        'referer': 'https://www.douyu.com/$roomId',
-        'user-agent':
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.43",
-      },
+      header: buildPlayRequestHeaders(roomId),
       formUrlEncoded: true,
     );
 
     return "${result["data"]["rtmp_url"]}/${HtmlUnescape().convert(result["data"]["rtmp_live"].toString())}";
+  }
+
+  /// 取流请求头，登录后附带Cookie以解锁2K及以上清晰度
+  Map<String, String> buildPlayRequestHeaders(String roomId) {
+    var headers = {
+      'referer': 'https://www.douyu.com/$roomId',
+      'user-agent':
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36 Edg/114.0.1823.43",
+    };
+    if (cookie.isNotEmpty) {
+      headers['Cookie'] = cookie;
+    }
+    return headers;
   }
 
   @override

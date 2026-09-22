@@ -1,5 +1,9 @@
 simple_live_app/.vscode/settings.json
 simple_live_tv_app/.vscode/settings.json
 
+# ZCode 本地文件
+.zcodeignore
+.zcode/
+
 # macOS Spotlight Search index file
 *.DS_Store

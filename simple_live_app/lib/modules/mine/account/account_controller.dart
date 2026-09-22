@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/routes/route_path.dart';
 import 'package:simple_live_app/services/bilibili_account_service.dart';
+import 'package:simple_live_app/services/douyu_account_service.dart';
 import 'package:simple_live_app/services/douyin_account_service.dart';
 import 'package:simple_live_core/simple_live_core.dart';
 
@@ -77,6 +78,103 @@ class AccountController extends GetxController {
     }
     BiliBiliAccountService.instance.setCookie(cookie);
     await BiliBiliAccountService.instance.loadUserInfo();
+  }
+
+  void douyuTap() async {
+    if (DouyuAccountService.instance.logined.value) {
+      var result = await Utils.showAlertDialog("确定要退出斗鱼账号吗？", title: "退出登录");
+      if (result) {
+        DouyuAccountService.instance.logout();
+        SmartDialog.showToast("已退出斗鱼账号");
+      }
+    } else {
+      douyuLogin();
+    }
+  }
+
+  void douyuLogin() {
+    Utils.showBottomSheet(
+      title: "登录斗鱼",
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.account_circle_outlined),
+            title: const Text("Web登录"),
+            subtitle: const Text("跳转斗鱼登录页，使用手机验证码登录"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Get.back();
+              Get.toNamed(RoutePath.kDouyuWebLogin);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.edit_outlined),
+            title: const Text("Cookie登录"),
+            subtitle: const Text("手动输入Cookie登录"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Get.back();
+              doDouyuCookieLogin();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void doDouyuCookieLogin() {
+    var controller = TextEditingController();
+    Get.dialog(
+      AlertDialog(
+        title: const Text("斗鱼 Cookie 登录"),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "登录斗鱼后可观看2K及以上清晰度。\n"
+                "在浏览器中登录斗鱼，按F12打开开发者工具，"
+                "在网络面板任选一个 www.douyu.com 的请求，"
+                "复制请求头中完整的 Cookie 值粘贴到此处（需包含 acf_auth）。",
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  hintText: "请粘贴 Cookie",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text("取消"),
+          ),
+          TextButton(
+            onPressed: () {
+              var input = controller.text.trim();
+              Get.back();
+              if (input.isEmpty) {
+                return;
+              }
+              if (!input.contains("acf_auth")) {
+                SmartDialog.showToast("Cookie中未包含acf_auth，可能无法生效");
+              }
+              DouyuAccountService.instance.setCookie(input);
+              SmartDialog.showToast("Cookie已保存");
+            },
+            child: const Text("确定"),
+          ),
+        ],
+      ),
+    );
   }
 
   void douyinTap() async {
