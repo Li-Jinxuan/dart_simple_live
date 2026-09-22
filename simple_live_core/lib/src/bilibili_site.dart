@@ -397,36 +397,6 @@ class BiliBiliSite implements LiveSite {
     return (asT<int?>(result["data"]["live_status"]) ?? 0) == 1;
   }
 
-  @override
-  Future<List<LiveSuperChatMessage>> getSuperChatMessage(
-      {required String roomId}) async {
-    var result = await HttpClient.instance.getJson(
-      "https://api.live.bilibili.com/av/v1/SuperChat/getMessageList",
-      queryParameters: {
-        "room_id": roomId,
-      },
-      header: await getHeader(),
-    );
-    List<LiveSuperChatMessage> ls = [];
-    for (var item in result["data"]?["list"] ?? []) {
-      var message = LiveSuperChatMessage(
-        backgroundBottomColor: item["background_bottom_color"].toString(),
-        backgroundColor: item["background_color"].toString(),
-        endTime: DateTime.fromMillisecondsSinceEpoch(
-          item["end_time"] * 1000,
-        ),
-        face: "${item["user_info"]["face"]}@200w.jpg",
-        message: item["message"].toString(),
-        price: item["price"],
-        startTime: DateTime.fromMillisecondsSinceEpoch(
-          item["start_time"] * 1000,
-        ),
-        userName: item["user_info"]["uname"].toString(),
-      );
-      ls.add(message);
-    }
-    return ls;
-  }
 
   /// 获取 buvid3 和 buvid4
   /// 返回buvid3和buvid4

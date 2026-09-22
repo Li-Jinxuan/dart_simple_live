@@ -52,9 +52,7 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
   Rx<LiveRoomDetail?> detail = Rx<LiveRoomDetail?>(null);
   var online = 0.obs;
-  var followed = false.obs;
   var liveStatus = false.obs;
-  RxList<LiveSuperChatMessage> superChats = RxList<LiveSuperChatMessage>();
 
   /// 滚动控制
   final ScrollController scrollController = ScrollController();
@@ -117,7 +115,6 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     }
     initAutoExit();
     showDanmakuState.value = AppSettingsController.instance.danmuEnable.value;
-    followed.value = DBService.instance.getFollowExist("${site.id}_$roomId");
     loadData();
 
     scrollController.addListener(scrollListener);
@@ -179,7 +176,6 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
 
   void refreshRoom() {
     //messages.clear();
-    superChats.clear();
     liveDanmaku.stop();
 
     loadData();
@@ -254,8 +250,6 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
       ]);
     } else if (msg.type == LiveMessageType.online) {
       online.value = msg.data;
-    } else if (msg.type == LiveMessageType.superChat) {
-      superChats.add(msg.data);
     }
   }
 
@@ -307,33 +301,11 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
         // 1.6.0收藏的RoomID
         // 1.6.0之后改回WebRid
         if (detail.value!.roomId != roomId) {
-          var oldId = roomId;
           rxRoomId.value = detail.value!.roomId;
-          if (followed.value) {
-            // 更新关注列表
-            DBService.instance.deleteFollow("${site.id}_$oldId");
-            DBService.instance.addFollow(
-              FollowUser(
-                id: "${site.id}_$roomId",
-                roomId: roomId,
-                siteId: site.id,
-                userName: detail.value!.userName,
-                face: detail.value!.userAvatar,
-                addTime: DateTime.now(),
-              ),
-            );
-          } else {
-            followed.value =
-                DBService.instance.getFollowExist("${site.id}_$roomId");
-          }
         }
       }
 
-      getSuperChatMessage();
-
       addHistory();
-      // 确认房间关注状态
-      followed.value = DBService.instance.getFollowExist("${site.id}_$roomId");
       online.value = detail.value!.online;
       liveStatus.value = detail.value!.status || detail.value!.isRecord;
       if (liveStatus.value) {
@@ -508,26 +480,6 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     }
   }
 
-  /// 读取SC
-  void getSuperChatMessage() async {
-    try {
-      var sc =
-          await site.liveSite.getSuperChatMessage(roomId: detail.value!.roomId);
-      superChats.addAll(sc);
-    } catch (e) {
-      Log.logPrint(e);
-      addSysMsg("SC读取失败");
-    }
-  }
-
-  /// 移除掉已到期的SC
-  void removeSuperChats() async {
-    var now = DateTime.now().millisecondsSinceEpoch;
-    superChats.value = superChats
-        .where((x) => x.endTime.millisecondsSinceEpoch > now)
-        .toList();
-  }
-
   /// 添加历史记录
   void addHistory() {
     if (detail.value == null) {
@@ -548,41 +500,6 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     );
 
     DBService.instance.addOrUpdateHistory(history);
-  }
-
-  /// 关注用户
-  void followUser() {
-    if (detail.value == null) {
-      return;
-    }
-    var id = "${site.id}_$roomId";
-    DBService.instance.addFollow(
-      FollowUser(
-        id: id,
-        roomId: roomId,
-        siteId: site.id,
-        userName: detail.value?.userName ?? "",
-        face: detail.value?.userAvatar ?? "",
-        addTime: DateTime.now(),
-      ),
-    );
-    followed.value = true;
-    EventBus.instance.emit(Constant.kUpdateFollow, id);
-  }
-
-  /// 取消关注用户
-  void removeFollowUser() async {
-    if (detail.value == null) {
-      return;
-    }
-    if (!await Utils.showAlertDialog("确定要取消关注该用户吗？", title: "取消关注")) {
-      return;
-    }
-
-    var id = "${site.id}_$roomId";
-    DBService.instance.deleteFollow(id);
-    followed.value = false;
-    EventBus.instance.emit(Constant.kUpdateFollow, id);
   }
 
   void share() {
@@ -995,7 +912,6 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
     // 清除全部消息
     liveDanmaku.stop();
     messages.clear();
-    superChats.clear();
     danmakuController?.clear();
 
     // 重新设置LiveDanmaku

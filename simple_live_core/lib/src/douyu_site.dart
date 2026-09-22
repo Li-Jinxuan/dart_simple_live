@@ -391,14 +391,6 @@ class DouyuSite implements LiveSite {
       return -999;
     }
   }
-
-  @override
-  Future<List<LiveSuperChatMessage>> getSuperChatMessage({
-    required String roomId,
-  }) {
-    //尚不支持
-    return Future.value([]);
-  }
 }
 
 class DouyuPlayData {

@@ -205,33 +205,6 @@ class BiliBiliDanmaku implements LiveDanmaku {
             onMessage?.call(liveMsg);
           }
         }
-      } else if (cmd == "SUPER_CHAT_MESSAGE") {
-        if (obj["data"] == null) {
-          return;
-        }
-        LiveSuperChatMessage sc = LiveSuperChatMessage(
-          backgroundBottomColor:
-              obj["data"]["background_bottom_color"].toString(),
-          backgroundColor: obj["data"]["background_color"].toString(),
-          endTime: DateTime.fromMillisecondsSinceEpoch(
-            obj["data"]["end_time"] * 1000,
-          ),
-          face: "${obj["data"]["user_info"]["face"]}@200w.jpg",
-          message: obj["data"]["message"].toString(),
-          price: obj["data"]["price"],
-          startTime: DateTime.fromMillisecondsSinceEpoch(
-            obj["data"]["start_time"] * 1000,
-          ),
-          userName: obj["data"]["user_info"]["uname"].toString(),
-        );
-        var liveMsg = LiveMessage(
-          type: LiveMessageType.superChat,
-          userName: "SUPER_CHAT_MESSAGE",
-          message: "SUPER_CHAT_MESSAGE",
-          color: LiveMessageColor.white,
-          data: sc,
-        );
-        onMessage?.call(liveMsg);
       }
     } catch (e) {
       CoreLog.error(e);

@@ -10,8 +10,6 @@ enum LiveMessageType {
   /// 在线人数
   online,
 
-  /// 醒目留言
-  superChat,
 }
 
 class LiveMessage {
@@ -85,37 +83,3 @@ class LiveMessageColor {
   }
 }
 
-class LiveSuperChatMessage {
-  final String userName;
-  final String face;
-  final String message;
-  final int price;
-  final DateTime startTime;
-  final DateTime endTime;
-  final String backgroundColor;
-  final String backgroundBottomColor;
-  LiveSuperChatMessage({
-    required this.backgroundBottomColor,
-    required this.backgroundColor,
-    required this.endTime,
-    required this.face,
-    required this.message,
-    required this.price,
-    required this.startTime,
-    required this.userName,
-  });
-
-  @override
-  String toString() {
-    return json.encode({
-      "userName": userName,
-      "face": face,
-      "message": message,
-      "price": price,
-      "startTime": startTime,
-      "endTime": endTime,
-      "backgroundColor": backgroundColor,
-      "backgroundBottomColor": backgroundBottomColor,
-    });
-  }
-}

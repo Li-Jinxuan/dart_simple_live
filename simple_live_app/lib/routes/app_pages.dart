@@ -31,6 +31,10 @@ import 'package:simple_live_app/modules/mine/account/bilibili/web_login_controll
 import 'package:simple_live_app/modules/mine/account/bilibili/web_login_page.dart';
 import 'package:simple_live_app/modules/mine/account/douyu/web_login_controller.dart';
 import 'package:simple_live_app/modules/mine/account/douyu/web_login_page.dart';
+import 'package:simple_live_app/modules/mine/account/douyin/web_login_controller.dart';
+import 'package:simple_live_app/modules/mine/account/douyin/web_login_page.dart';
+import 'package:simple_live_app/modules/mine/account/huya/web_login_controller.dart';
+import 'package:simple_live_app/modules/mine/account/huya/web_login_page.dart';
 import 'package:simple_live_app/modules/settings/appstyle_setting_page.dart';
 import 'package:simple_live_app/modules/settings/auto_exit_settings_page.dart';
 import 'package:simple_live_app/modules/settings/danmu_settings_page.dart';
@@ -180,6 +184,22 @@ class AppPages {
       page: () => const DouyuWebLoginPage(),
       bindings: [
         BindingsBuilder.put(() => DouyuWebLoginController()),
+      ],
+    ),
+    //虎牙Web登录
+    GetPage(
+      name: RoutePath.kHuyaWebLogin,
+      page: () => const HuyaWebLoginPage(),
+      bindings: [
+        BindingsBuilder.put(() => HuyaWebLoginController()),
+      ],
+    ),
+    //抖音Web登录
+    GetPage(
+      name: RoutePath.kDouyinWebLogin,
+      page: () => const DouyinWebLoginPage(),
+      bindings: [
+        BindingsBuilder.put(() => DouyinWebLoginController()),
       ],
     ),
     // 数据同步

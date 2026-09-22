@@ -81,10 +81,4 @@ class LiveSite {
   Future<bool> getLiveStatus({required String roomId}) {
     return Future.value(false);
   }
-
-  /// 读取指定房间的SC
-  Future<List<LiveSuperChatMessage>> getSuperChatMessage(
-      {required String roomId}) {
-    return Future.value([]);
-  }
 }

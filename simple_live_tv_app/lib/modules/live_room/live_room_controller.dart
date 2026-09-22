@@ -135,8 +135,6 @@ class LiveRoomController extends PlayerController with WidgetsBindingObserver {
       ]);
     } else if (msg.type == LiveMessageType.online) {
       online.value = msg.data;
-    } else if (msg.type == LiveMessageType.superChat) {
-      //superChats.add(msg.data);
     }
   }
 

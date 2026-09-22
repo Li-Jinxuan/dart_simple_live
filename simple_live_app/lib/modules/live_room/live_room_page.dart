@@ -22,7 +22,6 @@ import 'package:simple_live_app/widgets/settings/settings_action.dart';
 import 'package:simple_live_app/widgets/settings/settings_card.dart';
 import 'package:simple_live_app/widgets/settings/settings_number.dart';
 import 'package:simple_live_app/widgets/settings/settings_switch.dart';
-import 'package:simple_live_app/widgets/superchat_card.dart';
 import 'package:simple_live_core/simple_live_core.dart';
 
 class LiveRoomPage extends GetView<LiveRoomController> {
@@ -187,25 +186,6 @@ class LiveRoomPage extends GetView<LiveRoomController> {
                 label: const Text("刷新"),
               ),
               AppStyle.hGap4,
-              Obx(
-                () => controller.followed.value
-                    ? TextButton.icon(
-                        style: TextButton.styleFrom(
-                          textStyle: const TextStyle(fontSize: 14),
-                        ),
-                        onPressed: controller.removeFollowUser,
-                        icon: const Icon(Remix.heart_fill),
-                        label: const Text("取消关注"),
-                      )
-                    : TextButton.icon(
-                        style: TextButton.styleFrom(
-                          textStyle: const TextStyle(fontSize: 14),
-                        ),
-                        onPressed: controller.followUser,
-                        icon: const Icon(Remix.heart_line),
-                        label: const Text("关注"),
-                      ),
-              ),
               const Expanded(child: Center()),
               TextButton.icon(
                 style: TextButton.styleFrom(
@@ -387,27 +367,6 @@ class LiveRoomPage extends GetView<LiveRoomController> {
       child: Row(
         children: [
           Expanded(
-            child: Obx(
-              () => controller.followed.value
-                  ? TextButton.icon(
-                      style: TextButton.styleFrom(
-                        textStyle: const TextStyle(fontSize: 14),
-                      ),
-                      onPressed: controller.removeFollowUser,
-                      icon: const Icon(Remix.heart_fill),
-                      label: const Text("取消关注"),
-                    )
-                  : TextButton.icon(
-                      style: TextButton.styleFrom(
-                        textStyle: const TextStyle(fontSize: 14),
-                      ),
-                      onPressed: controller.followUser,
-                      icon: const Icon(Remix.heart_line),
-                      label: const Text("关注"),
-                    ),
-            ),
-          ),
-          Expanded(
             child: TextButton.icon(
               style: TextButton.styleFrom(
                 textStyle: const TextStyle(fontSize: 14),
@@ -435,7 +394,7 @@ class LiveRoomPage extends GetView<LiveRoomController> {
   Widget buildMessageArea() {
     return Expanded(
       child: DefaultTabController(
-        length: controller.site.id == Constant.kBiliBili ? 4 : 3,
+        length: 3,
         child: Column(
           children: [
             TabBar(
@@ -446,16 +405,6 @@ class LiveRoomPage extends GetView<LiveRoomController> {
                 const Tab(
                   text: "聊天",
                 ),
-                if (controller.site.id == Constant.kBiliBili)
-                  Tab(
-                    child: Obx(
-                      () => Text(
-                        controller.superChats.isNotEmpty
-                            ? "SC(${controller.superChats.length})"
-                            : "SC",
-                      ),
-                    ),
-                  ),
                 const Tab(
                   text: "关注",
                 ),
@@ -505,8 +454,6 @@ class LiveRoomPage extends GetView<LiveRoomController> {
                       ],
                     ),
                   ),
-                  if (controller.site.id == Constant.kBiliBili)
-                    buildSuperChats(),
                   buildFollowList(),
                   buildSettings(),
                 ],
@@ -594,27 +541,6 @@ class LiveRoomPage extends GetView<LiveRoomController> {
     );
   }
 
-  Widget buildSuperChats() {
-    return KeepAliveWrapper(
-      child: Obx(
-        () => ListView.separated(
-          padding: AppStyle.edgeInsetsA12,
-          itemCount: controller.superChats.length,
-          separatorBuilder: (_, i) => AppStyle.vGap12,
-          itemBuilder: (_, i) {
-            var item = controller.superChats[i];
-            return SuperChatCard(
-              item,
-              onExpire: () {
-                controller.removeSuperChats();
-              },
-            );
-          },
-        ),
-      ),
-    );
-  }
-
   Widget buildSettings() {
     return ListView(
       padding: AppStyle.edgeInsetsA12,
@@ -673,17 +599,6 @@ class LiveRoomPage extends GetView<LiveRoomController> {
                   value: AppSettingsController.instance.chatBubbleStyle.value,
                   onChanged: (e) {
                     AppSettingsController.instance.setChatBubbleStyle(e);
-                  },
-                ),
-              ),
-              AppStyle.divider,
-              Obx(
-                () => SettingsSwitch(
-                  title: "播放器中显示SC",
-                  value:
-                      AppSettingsController.instance.playershowSuperChat.value,
-                  onChanged: (e) {
-                    AppSettingsController.instance.setPlayerShowSuperChat(e);
                   },
                 ),
               ),

@@ -7,6 +7,7 @@ import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/routes/route_path.dart';
 import 'package:simple_live_app/services/bilibili_account_service.dart';
 import 'package:simple_live_app/services/douyu_account_service.dart';
+import 'package:simple_live_app/services/huya_account_service.dart';
 import 'package:simple_live_app/services/douyin_account_service.dart';
 import 'package:simple_live_core/simple_live_core.dart';
 
@@ -29,18 +30,15 @@ class AccountController extends GetxController {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Visibility(
-            visible: Platform.isAndroid || Platform.isIOS,
-            child: ListTile(
-              leading: const Icon(Icons.account_circle_outlined),
-              title: const Text("Web登录"),
-              subtitle: const Text("填写用户名密码登录"),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                Get.back();
-                Get.toNamed(RoutePath.kBiliBiliWebLogin);
-              },
-            ),
+          ListTile(
+            leading: const Icon(Icons.account_circle_outlined),
+            title: const Text("Web登录"),
+            subtitle: const Text("填写用户名密码登录"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Get.back();
+              Get.toNamed(RoutePath.kBiliBiliWebLogin);
+            },
           ),
           ListTile(
             leading: const Icon(Icons.qr_code),
@@ -78,6 +76,103 @@ class AccountController extends GetxController {
     }
     BiliBiliAccountService.instance.setCookie(cookie);
     await BiliBiliAccountService.instance.loadUserInfo();
+  }
+
+  void huyaTap() async {
+    if (HuyaAccountService.instance.logined.value) {
+      var result = await Utils.showAlertDialog("确定要退出虎牙账号吗？", title: "退出登录");
+      if (result) {
+        HuyaAccountService.instance.logout();
+        SmartDialog.showToast("已退出虎牙账号");
+      }
+    } else {
+      huyaLogin();
+    }
+  }
+
+  void huyaLogin() {
+    Utils.showBottomSheet(
+      title: "登录虎牙",
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.account_circle_outlined),
+            title: const Text("Web登录"),
+            subtitle: const Text("打开虎牙关注页自动弹出登录，使用手机验证码登录"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Get.back();
+              Get.toNamed(RoutePath.kHuyaWebLogin);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.edit_outlined),
+            title: const Text("Cookie登录"),
+            subtitle: const Text("手动输入Cookie登录"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Get.back();
+              doHuyaCookieLogin();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void doHuyaCookieLogin() {
+    var controller = TextEditingController();
+    Get.dialog(
+      AlertDialog(
+        title: const Text("虎牙 Cookie 登录"),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "登录虎牙后可同步关注列表。"
+                "在浏览器中登录虎牙，按F12打开开发者工具，"
+                "在网络面板任选一个 www.huya.com 的请求，"
+                "复制请求头中完整的 Cookie 值粘贴到此处（需包含 udb_uid）。",
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  hintText: "请粘贴 Cookie",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text("取消"),
+          ),
+          TextButton(
+            onPressed: () {
+              var input = controller.text.trim();
+              Get.back();
+              if (input.isEmpty) {
+                return;
+              }
+              if (!input.contains("udb_uid")) {
+                SmartDialog.showToast("Cookie中未包含udb_uid，可能无法生效");
+              }
+              HuyaAccountService.instance.setCookie(input);
+              SmartDialog.showToast("Cookie已保存");
+            },
+            child: const Text("确定"),
+          ),
+        ],
+      ),
+    );
   }
 
   void douyuTap() async {
@@ -178,15 +273,46 @@ class AccountController extends GetxController {
   }
 
   void douyinTap() async {
-    if (DouyinAccountService.instance.hasCookie.value) {
-      var result = await Utils.showAlertDialog("确定要清除自定义 ttwid 吗？", title: "清除配置");
+    if (DouyinAccountService.instance.logined.value) {
+      var result = await Utils.showAlertDialog("确定要退出抖音账号吗？", title: "退出登录");
       if (result) {
         DouyinAccountService.instance.clearCookie();
-        SmartDialog.showToast("已清除自定义 ttwid，将使用默认 ttwid");
+        SmartDialog.showToast("已退出抖音账号，将使用默认 ttwid");
       }
-    } else {
-      doDouyinCookieConfig();
+      return;
     }
+    douyinLogin();
+  }
+
+  void douyinLogin() {
+    Utils.showBottomSheet(
+      title: "登录抖音",
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.account_circle_outlined),
+            title: const Text("Web登录"),
+            subtitle: const Text("打开抖音个人页自动弹出登录，登录后可同步直播关注"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Get.back();
+              Get.toNamed(RoutePath.kDouyinWebLogin);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.edit_outlined),
+            title: const Text("自定义 ttwid"),
+            subtitle: const Text("仅设置播放Cookie，不登录账号"),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Get.back();
+              doDouyinCookieConfig();
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   void doDouyinCookieConfig() {

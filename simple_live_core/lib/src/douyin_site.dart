@@ -752,13 +752,6 @@ class DouyinSite implements LiveSite {
     return result.status;
   }
 
-  @override
-  Future<List<LiveSuperChatMessage>> getSuperChatMessage({
-    required String roomId,
-  }) {
-    return Future.value(<LiveSuperChatMessage>[]);
-  }
-
   //生成指定长度的16进制随机字符串
   String generateRandomString(int length) {
     var random = Random.secure();

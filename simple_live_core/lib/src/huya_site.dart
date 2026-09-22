@@ -659,13 +659,6 @@ class HuyaSite implements LiveSite {
       "a_block": "0"
     }).query;
   }
-
-  @override
-  Future<List<LiveSuperChatMessage>> getSuperChatMessage(
-      {required String roomId}) {
-    //尚不支持
-    return Future.value([]);
-  }
 }
 
 class HuyaUrlDataModel {

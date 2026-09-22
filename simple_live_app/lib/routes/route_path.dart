@@ -60,6 +60,12 @@ class RoutePath {
   /// 斗鱼 Web登录
   static const kDouyuWebLogin = "/settings/account/douyu/web_login";
 
+  /// 虎牙 Web登录
+  static const kHuyaWebLogin = "/settings/account/huya/web_login";
+
+  /// 抖音 Web登录
+  static const kDouyinWebLogin = "/settings/account/douyin/web_login";
+
   /// 数据同步
   static const kLocalSync = "/local_sync";
 
