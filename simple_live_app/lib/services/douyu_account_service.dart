@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -14,9 +15,18 @@ import 'package:simple_live_core/simple_live_core.dart';
 class DouyuAccountService extends GetxService {
   static DouyuAccountService get instance => Get.find<DouyuAccountService>();
 
+  static const String kWebUserAgent =
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0";
+
   var cookie = "";
   var logined = false.obs;
   var name = "未登录".obs;
+
+  /// 上次Cookie续期时间
+  DateTime? lastCookieRefresh;
+
+  /// 续期进行中标记（防止并发起多个无头WebView）
+  bool cookieRefreshing = false;
 
   @override
   void onInit() {
@@ -60,7 +70,67 @@ class DouyuAccountService extends GetxService {
   /// 拉取斗鱼官方关注列表（需登录）
   /// 返回纯运行时的 FollowUser 列表，不写入本地数据库；
   /// 直播状态/热度/开播时间随接口返回，无需逐房间查询
+  /// Cookie续期：斗鱼登录态靠页面访问滚动续期（网页版经常打开可半年不掉），
+  /// App存的是静态快照，需要定期用无头WebView真实访问一次页面触发续期后重新捕获，
+  /// 否则快照会在几天内过期
+  Future<void> refreshCookieIfNeeded() async {
+    if (!logined.value || cookieRefreshing) {
+      return;
+    }
+    var last = lastCookieRefresh;
+    if (last != null && DateTime.now().difference(last).inHours < 6) {
+      return;
+    }
+    cookieRefreshing = true;
+    HeadlessInAppWebView? headless;
+    var completer = Completer<void>();
+    try {
+      headless = HeadlessInAppWebView(
+        initialUrlRequest: URLRequest(
+          url: WebUri("https://www.douyu.com/directory/myFollow"),
+        ),
+        initialSettings: InAppWebViewSettings(
+          userAgent: kWebUserAgent,
+        ),
+        onLoadStop: (controller, url) async {
+          try {
+            //稍等让页面的passport校验/续期流程完成
+            await Future.delayed(const Duration(seconds: 1));
+            var cookies = await CookieManager.instance().getCookies(
+              url: WebUri("https://www.douyu.com/"),
+            );
+            var cookieStr = cookies.map((e) => "${e.name}=${e.value}").join(";");
+            if (cookieStr.contains("acf_auth")) {
+              setCookie(cookieStr);
+              Log.i("斗鱼Cookie已续期");
+            } else {
+              Log.logPrint("斗鱼Cookie续期失败：未获取到acf_auth，会话可能已失效");
+            }
+          } catch (e) {
+            Log.logPrint(e);
+          } finally {
+            if (!completer.isCompleted) {
+              completer.complete();
+            }
+          }
+        },
+      );
+      await headless.run();
+      await completer.future.timeout(const Duration(seconds: 20));
+      lastCookieRefresh = DateTime.now();
+    } catch (e) {
+      Log.logPrint(e);
+    } finally {
+      cookieRefreshing = false;
+      try {
+        await headless?.dispose();
+      } catch (_) {}
+    }
+  }
+
   Future<List<FollowUser>> fetchFollowList() async {
+    //拉取前先检查Cookie是否需要续期
+    await refreshCookieIfNeeded();
     var result = <FollowUser>[];
     try {
       int offset = 0;
