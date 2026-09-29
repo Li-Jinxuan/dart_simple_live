@@ -84,8 +84,8 @@ class DouyuAccountService extends GetxService {
         if (resp["error"] != 0) {
           var msg = resp["msg"]?.toString() ?? "";
           Log.logPrint("斗鱼关注列表获取失败: ${resp["error"]} $msg");
-          //登录态失效时清除登录状态
-          if (msg.contains("登录")) {
+          //登录态失效时清除登录状态（接口返回"未登陆"，注意兼容"登陆/登录"两种写法）
+          if (msg.contains("登") || msg.contains("过期")) {
             SmartDialog.showToast("斗鱼登录已失效，请重新登录");
             logout();
           }

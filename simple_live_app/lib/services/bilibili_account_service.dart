@@ -89,7 +89,8 @@ class BiliBiliAccountService extends GetxService {
         );
         if (resp["code"] != 0) {
           Log.logPrint("哔哩哔哩关注列表获取失败: ${resp["code"]} ${resp["message"]}");
-          if ((resp["message"]?.toString() ?? "").contains("登录")) {
+          var message = resp["message"]?.toString() ?? "";
+          if (message.contains("登") || message.contains("过期")) {
             SmartDialog.showToast("哔哩哔哩登录已失效，请重新登录");
             logout();
           }
