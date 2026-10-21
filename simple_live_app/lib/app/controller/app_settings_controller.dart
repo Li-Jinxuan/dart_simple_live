@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:simple_live_app/app/constant.dart';
@@ -83,8 +84,9 @@ class AppSettingsController extends GetxController {
     autoFullScreen.value = LocalStorageService.instance
         .getValue(LocalStorageService.kAutoFullScreen, false);
 
-    // ignore: invalid_use_of_protected_member
-    shieldList.value = LocalStorageService.instance.shieldBox.values.toSet();
+    shieldList.assignAll(LocalStorageService.instance.shieldBox.values
+        .map((keyword) => keyword.trim())
+        .where((keyword) => keyword.isNotEmpty));
 
     scaleMode.value = LocalStorageService.instance.getValue(
       LocalStorageService.kPlayerScaleMode,
@@ -95,9 +97,6 @@ class AppSettingsController extends GetxController {
       LocalStorageService.kPlayerVolume,
       100.0,
     );
-    pipHideDanmu.value = LocalStorageService.instance
-        .getValue(LocalStorageService.kPIPHideDanmu, true);
-
     styleColor.value = LocalStorageService.instance
         .getValue(LocalStorageService.kStyleColor, 0xff3498db);
 
@@ -374,19 +373,18 @@ class AppSettingsController extends GetxController {
   }
 
   RxSet<String> shieldList = <String>{}.obs;
-  void addShieldList(String e) {
-    shieldList.add(e);
-    LocalStorageService.instance.shieldBox.put(e, e);
-  }
-
-  void removeShieldList(String e) {
-    shieldList.remove(e);
-    LocalStorageService.instance.shieldBox.delete(e);
-  }
-
-  Future clearShieldList() async {
-    shieldList.clear();
-    await LocalStorageService.instance.shieldBox.clear();
+  Future<void> setShieldList(String text) async {
+    final keywords = const LineSplitter()
+        .convert(text)
+        .map((keyword) => keyword.trim())
+        .where((keyword) => keyword.isNotEmpty)
+        .toSet();
+    final box = LocalStorageService.instance.shieldBox;
+    await box.putAll({for (final keyword in keywords) keyword: keyword});
+    await box.deleteAll(
+      box.keys.where((key) => !keywords.contains(key)).toList(),
+    );
+    shieldList.assignAll(keywords);
   }
 
   void setScaleMode(int value) {
@@ -422,12 +420,6 @@ class AppSettingsController extends GetxController {
       LocalStorageService.kPlayerVolume,
       value,
     );
-  }
-
-  var pipHideDanmu = true.obs;
-  void setPIPHideDanmu(bool e) {
-    pipHideDanmu.value = e;
-    LocalStorageService.instance.setValue(LocalStorageService.kPIPHideDanmu, e);
   }
 
   var styleColor = 0xff3498db.obs;

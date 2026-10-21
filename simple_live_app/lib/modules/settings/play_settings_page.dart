@@ -132,19 +132,6 @@ class PlaySettingsPage extends GetView<AppSettingsController> {
                     },
                   ),
                 ),
-                AppStyle.divider,
-                Obx(
-                  () => Visibility(
-                    visible: Platform.isAndroid,
-                    child: SettingsSwitch(
-                      title: "进入小窗隐藏弹幕",
-                      value: controller.pipHideDanmu.value,
-                      onChanged: (e) {
-                        controller.setPIPHideDanmu(e);
-                      },
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

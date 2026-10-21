@@ -387,30 +387,6 @@ class Utils {
     return num.toString();
   }
 
-  /// 检查相册权限
-  static Future<bool> checkPhotoPermission() async {
-    try {
-      if (!Platform.isIOS) {
-        return true;
-      }
-      var status = await Permission.photos.status;
-      if (status == PermissionStatus.granted) {
-        return true;
-      }
-      status = await Permission.photos.request();
-      if (status.isGranted) {
-        return true;
-      } else {
-        SmartDialog.showToast(
-          "请授予相册访问权限",
-        );
-        return false;
-      }
-    } catch (e) {
-      return false;
-    }
-  }
-
   static final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
 
   /// 检查文件权限
@@ -493,16 +469,6 @@ class Utils {
       SmartDialog.showToast("读取剪切板内容失败：$e");
     }
     return null;
-  }
-
-  static bool isRegexFormat(String keyword) {
-    return keyword.startsWith('/') &&
-        keyword.endsWith('/') &&
-        keyword.length > 2;
-  }
-
-  static String removeRegexFormat(String keyword) {
-    return keyword.substring(1, keyword.length - 1);
   }
 
   static String parseFileSize(int size) {

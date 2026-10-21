@@ -7,22 +7,10 @@ import 'package:simple_live_app/modules/indexed/indexed_controller.dart';
 import 'package:simple_live_app/modules/live_room/live_room_controller.dart';
 import 'package:simple_live_app/modules/live_room/live_room_page.dart';
 import 'package:simple_live_app/modules/settings/follow_settings_page.dart';
-import 'package:simple_live_app/modules/sync/remote_sync/webdav/remote_sync_webdav_config_page.dart';
-import 'package:simple_live_app/modules/sync/remote_sync/webdav/remote_sync_webdav_controller.dart';
-import 'package:simple_live_app/modules/sync/remote_sync/webdav/remote_sync_webdav_page.dart';
-import 'package:simple_live_app/modules/sync/sync_page.dart';
-import 'package:simple_live_app/modules/sync/remote_sync/room/remote_sync_room_controller.dart';
-import 'package:simple_live_app/modules/sync/remote_sync/room/remote_sync_room_page.dart';
 import 'package:simple_live_app/modules/search/search_controller.dart';
 import 'package:simple_live_app/modules/search/search_page.dart';
-import 'package:simple_live_app/modules/sync/local_sync/device/sync_device_controller.dart';
-import 'package:simple_live_app/modules/sync/local_sync/device/sync_device_page.dart';
-import 'package:simple_live_app/modules/sync/local_sync/scan_qr/sync_scan_qr_controller.dart';
-import 'package:simple_live_app/modules/sync/local_sync/scan_qr/sync_scan_qr_page.dart';
 import 'package:simple_live_app/modules/mine/parse/parse_controller.dart';
 import 'package:simple_live_app/modules/mine/parse/parse_page.dart';
-import 'package:simple_live_app/modules/sync/local_sync/local_sync_controller.dart';
-import 'package:simple_live_app/modules/sync/local_sync/local_sync_page.dart';
 import 'package:simple_live_app/modules/mine/account/account_controller.dart';
 import 'package:simple_live_app/modules/mine/account/account_page.dart';
 import 'package:simple_live_app/modules/mine/account/bilibili/qr_login_controller.dart';
@@ -38,7 +26,6 @@ import 'package:simple_live_app/modules/mine/account/huya/web_login_page.dart';
 import 'package:simple_live_app/modules/settings/appstyle_setting_page.dart';
 import 'package:simple_live_app/modules/settings/auto_exit_settings_page.dart';
 import 'package:simple_live_app/modules/settings/danmu_settings_page.dart';
-import 'package:simple_live_app/modules/settings/danmu_shield/danmu_shield_controller.dart';
 import 'package:simple_live_app/modules/settings/danmu_shield/danmu_shield_page.dart';
 import 'package:simple_live_app/modules/follow_user/follow_user_controller.dart';
 import 'package:simple_live_app/modules/follow_user/follow_user_page.dart';
@@ -142,9 +129,6 @@ class AppPages {
     GetPage(
       name: RoutePath.kSettingsDanmuShield,
       page: () => const DanmuShieldPage(),
-      bindings: [
-        BindingsBuilder.put(() => DanmuShieldController()),
-      ],
     ),
     //主页设置
     GetPage(
@@ -201,69 +185,6 @@ class AppPages {
       bindings: [
         BindingsBuilder.put(() => DouyinWebLoginController()),
       ],
-    ),
-    // 数据同步
-    GetPage(
-      name: RoutePath.kSync,
-      page: () => const SyncPage(),
-    ),
-    // 本地同步
-    GetPage(
-      name: RoutePath.kLocalSync,
-      page: () => const LocalSyncPage(),
-      bindings: [
-        BindingsBuilder.put(
-          () => LocalSyncController(
-            Get.arguments ?? "",
-          ),
-        ),
-      ],
-    ),
-    //扫码
-    GetPage(
-      name: RoutePath.kSyncScan,
-      page: () => const SyncScanQRPage(),
-      bindings: [
-        BindingsBuilder.put(() => SyncScanQRControlelr()),
-      ],
-    ),
-    //同步设备
-    GetPage(
-      name: RoutePath.kLocalSyncDevice,
-      page: () => const SyncDevicePage(),
-      bindings: [
-        BindingsBuilder.put(
-          () => SyncDeviceController(
-            client: Get.arguments['client'],
-            info: Get.arguments['info'],
-          ),
-        ),
-      ],
-    ),
-    //远程同步-房间
-    GetPage(
-      name: RoutePath.kRemoteSyncRoom,
-      page: () => const RemoteSyncRoomPage(),
-      bindings: [
-        BindingsBuilder.put(
-          () => RemoteSyncRoomController(Get.arguments ?? ""),
-        ),
-      ],
-    ),
-    //远程同步-WebDAV
-    GetPage(
-      name: RoutePath.kRemoteSyncWebDav,
-      page: () => const RemoteSyncWebDAVPage(),
-      bindings: [
-        BindingsBuilder.put(
-              () => RemoteSyncWebDAVController(),
-        ),
-      ],
-    ),
-    //远程同步-WebDAVConfig
-    GetPage(
-      name: RoutePath.kRemoteSyncWebDavConfig,
-      page: () => const RemoteSyncWebDAVConfigPage(),
     ),
     //其他设置
     GetPage(

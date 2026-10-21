@@ -31,7 +31,6 @@ import 'package:simple_live_app/services/huya_account_service.dart';
 import 'package:simple_live_app/services/db_service.dart';
 import 'package:simple_live_app/services/follow_service.dart';
 import 'package:simple_live_app/services/local_storage_service.dart';
-import 'package:simple_live_app/services/sync_service.dart';
 import 'package:simple_live_app/widgets/status/app_loadding_widget.dart';
 import 'package:simple_live_core/simple_live_core.dart';
 import 'package:window_manager/window_manager.dart';
@@ -71,7 +70,7 @@ Future<bool> _tryExitPlayerDesktopFullScreen() async {
   }
 
   final controller = Get.find<LiveRoomController>();
-  if (!controller.fullScreenState.value || controller.smallWindowState.value) {
+  if (!controller.fullScreenState.value) {
     return false;
   }
 
@@ -157,8 +156,6 @@ Future initServices() async {
   Get.put(DouyuAccountService());
 
   Get.put(HuyaAccountService());
-
-  Get.put(SyncService());
 
   Get.put(FollowService());
 

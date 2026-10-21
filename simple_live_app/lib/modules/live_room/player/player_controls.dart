@@ -84,16 +84,6 @@ Widget buildFullControls(
                 width: double.infinity,
                 height: double.infinity,
                 color: Colors.transparent,
-                // child: Visibility(
-                //   //拖拽区域
-                //   visible: controller.smallWindowState.value,
-                //   child: DragToMoveArea(
-                //       child: Container(
-                //     width: double.infinity,
-                //     height: double.infinity,
-                //     color: Colors.transparent,
-                //   )),
-                // ),
               ),
             ),
           ),
@@ -130,13 +120,7 @@ Widget buildFullControls(
                 children: [
                   IconButton(
                     mouseCursor: _playerBottomButtonCursor,
-                    onPressed: () {
-                      if (controller.smallWindowState.value) {
-                        controller.exitSmallWindow();
-                      } else {
-                        controller.exitFull();
-                      }
-                    },
+                    onPressed: controller.exitFull,
                     icon: const Icon(
                       Icons.arrow_back,
                       color: Colors.white,
@@ -156,37 +140,12 @@ Widget buildFullControls(
                   IconButton(
                     mouseCursor: _playerBottomButtonCursor,
                     onPressed: () {
-                      controller.saveScreenshot();
-                    },
-                    icon: const Icon(
-                      Icons.camera_alt_outlined,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  IconButton(
-                    mouseCursor: _playerBottomButtonCursor,
-                    onPressed: () {
                       showFollowUser(controller);
                     },
                     icon: const Icon(
                       Remix.play_list_2_line,
                       color: Colors.white,
                       size: 24,
-                    ),
-                  ),
-                  Visibility(
-                    visible: Platform.isAndroid,
-                    child: IconButton(
-                      mouseCursor: _playerBottomButtonCursor,
-                      onPressed: () {
-                        controller.enablePIP();
-                      },
-                      icon: const Icon(
-                        Icons.picture_in_picture,
-                        color: Colors.white,
-                        size: 24,
-                      ),
                     ),
                   ),
                   IconButton(
@@ -341,13 +300,7 @@ Widget buildFullControls(
                   ),
                   IconButton(
                     mouseCursor: _playerBottomButtonCursor,
-                    onPressed: () {
-                      if (controller.smallWindowState.value) {
-                        controller.exitSmallWindow();
-                      } else {
-                        controller.exitFull();
-                      }
-                    },
+                    onPressed: controller.exitFull,
                     icon: const Icon(
                       Remix.fullscreen_exit_fill,
                       color: Colors.white,
@@ -479,7 +432,7 @@ Widget buildControls(
         () => AnimatedPositioned(
           left: 0,
           right: 0,
-          bottom: controller.showControlsState.value ? 0 : -48,
+          bottom: controller.showControlsState.value ? 0 : -80,
           duration: const Duration(milliseconds: 200),
           child: Container(
             decoration: const BoxDecoration(
@@ -603,20 +556,6 @@ Widget buildControls(
                           fontSize: 15,
                         ),
                       ),
-                    ),
-                  ),
-                ),
-                Visibility(
-                  visible: !Platform.isAndroid && !Platform.isIOS,
-                  child: IconButton(
-                    mouseCursor: _playerBottomButtonCursor,
-                    onPressed: () {
-                      controller.enterSmallWindow();
-                    },
-                    icon: const Icon(
-                      Icons.picture_in_picture,
-                      color: Colors.white,
-                      size: 24,
                     ),
                   ),
                 ),

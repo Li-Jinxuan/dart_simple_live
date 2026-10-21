@@ -1,13 +1,10 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:simple_live_app/app/app_style.dart';
-import 'package:simple_live_app/app/log.dart';
 import 'package:simple_live_app/app/utils.dart';
 import 'package:simple_live_app/routes/route_path.dart';
-import 'package:simple_live_app/services/signalr_service.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class MinePage extends StatelessWidget {
@@ -88,22 +85,6 @@ class MinePage extends StatelessWidget {
               ),
               onTap: () {
                 Get.toNamed(RoutePath.kSettingsAccount);
-              },
-            ),
-            Divider(
-              indent: 12,
-              endIndent: 12,
-              color: Colors.grey.withAlpha(25),
-            ),
-            ListTile(
-              leading: const Icon(Icons.devices),
-              title: const Text("数据同步"),
-              trailing: const Icon(
-                Icons.chevron_right,
-                color: Colors.grey,
-              ),
-              onTap: () {
-                Get.toNamed(RoutePath.kSync);
               },
             ),
             Divider(
@@ -207,22 +188,6 @@ class MinePage extends StatelessWidget {
                     Get.toNamed(RoutePath.kSettingsOther);
                   },
                 ),
-                if (kDebugMode)
-                  ListTile(
-                    leading: const Icon(Remix.apps_line),
-                    title: const Text("测试"),
-                    trailing: const Icon(
-                      Icons.chevron_right,
-                      color: Colors.grey,
-                    ),
-                    onTap: () async {
-                      SignalRService signalRService = SignalRService();
-                      await signalRService.connect();
-                      //Get.toNamed(RoutePath.kTest);
-                      var room = await signalRService.createRoom();
-                      Log.logPrint(room);
-                    },
-                  ),
               ],
             ),
             Divider(

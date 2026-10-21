@@ -2,13 +2,10 @@ import 'dart:async';
 import 'dart:io';
 import 'package:auto_orientation_v2/auto_orientation_v2.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:floating/floating.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
-import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:canvas_danmaku/canvas_danmaku.dart';
@@ -78,9 +75,6 @@ mixin PlayerMixin {
 mixin PlayerStateMixin on PlayerMixin {
   ///音量控制条计时器
   Timer? hidevolumeTimer;
-
-  /// 是否进入桌面端小窗
-  RxBool smallWindowState = false.obs;
 
   /// 是否显示弹幕
   RxBool showDanmakuState = false.obs;
@@ -226,9 +220,6 @@ mixin PlayerDanmakuMixin on PlayerStateMixin {
 mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
   final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
 
-  final pip = Floating();
-  StreamSubscription<PiPStatus>? _pipSubscription;
-
   bool get _isDesktopPlatform => !Platform.isAndroid && !Platform.isIOS;
 
   /// 初始化一些系统状态
@@ -251,8 +242,6 @@ mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
 
   /// 释放一些系统状态
   Future resetSystem() async {
-    _pipSubscription?.cancel();
-    //pip.dispose();
     await SystemChrome.setEnabledSystemUIMode(
       SystemUiMode.edgeToEdge,
       overlays: SystemUiOverlay.values,
@@ -310,50 +299,6 @@ mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
     //danmakuController?.clear();
   }
 
-  Size? _lastWindowSize;
-  Offset? _lastWindowPosition;
-
-  ///小窗模式()
-  void enterSmallWindow() async {
-    if (_isDesktopPlatform) {
-      fullScreenState.value = true;
-      smallWindowState.value = true;
-
-      // 读取窗口大小
-      _lastWindowSize = await windowManager.getSize();
-      _lastWindowPosition = await windowManager.getPosition();
-
-      await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
-      // 获取视频窗口大小
-      var width = player.state.width ?? 16;
-      var height = player.state.height ?? 9;
-
-      // 横屏还是竖屏
-      if (height > width) {
-        var aspectRatio = width / height;
-        windowManager.setSize(Size(400, 400 / aspectRatio));
-      } else {
-        var aspectRatio = height / width;
-        windowManager.setSize(Size(280 / aspectRatio, 280));
-      }
-
-      await windowManager.setAlwaysOnTop(true);
-    }
-  }
-
-  ///退出小窗模式()
-  Future<void> exitSmallWindow() async {
-    if (_isDesktopPlatform) {
-      fullScreenState.value = false;
-      smallWindowState.value = false;
-      await windowManager.setTitleBarStyle(TitleBarStyle.normal);
-      await windowManager.setSize(_lastWindowSize!);
-      await windowManager.setPosition(_lastWindowPosition!);
-      await windowManager.setAlwaysOnTop(false);
-      //windowManager.setAlignment(Alignment.center);
-    }
-  }
-
   /// 设置横屏
   Future setLandscapeOrientation() async {
     if (await beforeIOS16()) {
@@ -387,97 +332,6 @@ mixin PlayerSystemMixin on PlayerMixin, PlayerStateMixin, PlayerDanmakuMixin {
     }
   }
 
-  Future saveScreenshot() async {
-    try {
-      SmartDialog.showLoading(msg: "正在保存截图");
-      //检查相册权限,仅iOS需要
-      var permission = await Utils.checkPhotoPermission();
-      if (!permission) {
-        SmartDialog.showToast("没有相册权限");
-        SmartDialog.dismiss(status: SmartStatus.loading);
-        return;
-      }
-
-      var imageData = await player.screenshot();
-      if (imageData == null) {
-        SmartDialog.showToast("截图失败,数据为空");
-        SmartDialog.dismiss(status: SmartStatus.loading);
-        return;
-      }
-
-      if (Platform.isIOS || Platform.isAndroid) {
-        await ImageGallerySaverPlus.saveImage(
-          imageData,
-        );
-        SmartDialog.showToast("已保存截图至相册");
-      } else {
-        //选择保存文件夹
-        var path = await FilePicker.platform.saveFile(
-          allowedExtensions: ["jpg"],
-          type: FileType.image,
-          fileName: "${DateTime.now().millisecondsSinceEpoch}.jpg",
-        );
-        if (path == null) {
-          SmartDialog.showToast("取消保存");
-          SmartDialog.dismiss(status: SmartStatus.loading);
-          return;
-        }
-        var file = File(path);
-        await file.writeAsBytes(imageData);
-        SmartDialog.showToast("已保存截图至${file.path}");
-      }
-    } catch (e) {
-      Log.logPrint(e);
-      SmartDialog.showToast("截图失败");
-    } finally {
-      SmartDialog.dismiss(status: SmartStatus.loading);
-    }
-  }
-
-  /// 开启小窗播放前弹幕状态
-  bool danmakuStateBeforePIP = false;
-
-  Future enablePIP() async {
-    if (!Platform.isAndroid) {
-      return;
-    }
-    if (await pip.isPipAvailable == false) {
-      SmartDialog.showToast("设备不支持小窗播放");
-      return;
-    }
-    danmakuStateBeforePIP = showDanmakuState.value;
-    //关闭并清除弹幕
-    if (AppSettingsController.instance.pipHideDanmu.value &&
-        danmakuStateBeforePIP) {
-      showDanmakuState.value = false;
-    }
-    danmakuController?.clear();
-    //关闭控制器
-    showControlsState.value = false;
-
-    //监听事件
-    var width = player.state.width ?? 0;
-    var height = player.state.height ?? 0;
-    Rational ratio = const Rational.landscape();
-    if (height > width) {
-      ratio = const Rational.vertical();
-    } else {
-      ratio = const Rational.landscape();
-    }
-    await pip.enable(
-      ImmediatePiP(
-        aspectRatio: ratio,
-      ),
-    );
-
-    _pipSubscription ??= pip.pipStatusStream.listen((event) {
-      if (event == PiPStatus.disabled) {
-        danmakuController?.clear();
-        showDanmakuState.value = danmakuStateBeforePIP;
-      }
-      Log.w(event.toString());
-    });
-  }
 }
 mixin PlayerGestureControlMixin
     on PlayerStateMixin, PlayerMixin, PlayerSystemMixin {
@@ -735,7 +589,6 @@ class PlayerController extends BaseController
     _widthSubscription?.cancel();
     _heightSubscription?.cancel();
     _logSubscription?.cancel();
-    _pipSubscription?.cancel();
     _playingSubscription?.cancel();
   }
 
@@ -849,9 +702,6 @@ class PlayerController extends BaseController
   @override
   void onClose() async {
     Log.w("播放器关闭");
-    if (smallWindowState.value) {
-      exitSmallWindow();
-    }
     if (!Platform.isAndroid && !Platform.isIOS) {
       windowManager.removeListener(this);
     }
@@ -864,15 +714,11 @@ class PlayerController extends BaseController
 
   @override
   void onWindowEnterFullScreen() {
-    if (!smallWindowState.value) {
-      fullScreenState.value = true;
-    }
+    fullScreenState.value = true;
   }
 
   @override
   void onWindowLeaveFullScreen() {
-    if (!smallWindowState.value) {
-      fullScreenState.value = false;
-    }
+    fullScreenState.value = false;
   }
 }

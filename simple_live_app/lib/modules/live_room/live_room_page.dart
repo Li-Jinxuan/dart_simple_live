@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:floating/floating.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
@@ -29,7 +28,7 @@ class LiveRoomPage extends GetView<LiveRoomController> {
 
   @override
   Widget build(BuildContext context) {
-    final page = Obx(
+    return Obx(
       () {
         if (controller.loadError.value) {
           return Scaffold(
@@ -99,14 +98,6 @@ class LiveRoomPage extends GetView<LiveRoomController> {
           return buildPageUI();
         }
       },
-    );
-    if (!Platform.isAndroid) {
-      return page;
-    }
-    return PiPSwitcher(
-      floating: controller.pip,
-      childWhenDisabled: page,
-      childWhenEnabled: buildMediaPlayer(),
     );
   }
 
@@ -303,33 +294,38 @@ class LiveRoomPage extends GetView<LiveRoomController> {
 
   Widget buildMessageArea() {
     return Expanded(
-      child: DefaultTabController(
-        length: 3,
-        child: Column(
-          children: [
-            TabBar(
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelPadding: EdgeInsets.zero,
-              indicatorWeight: 1.0,
-              tabs: [
-                const Tab(
-                  text: "聊天",
-                ),
-                const Tab(
-                  text: "关注",
-                ),
-                const Tab(
-                  text: "设置",
-                ),
-              ],
-            ),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  Obx(
-                    () => Stack(
-                      children: [
-                        ListView.separated(
+      child: Column(
+        children: [
+          TabBar(
+            controller: controller.messageTabController,
+            indicatorSize: TabBarIndicatorSize.tab,
+            labelPadding: EdgeInsets.zero,
+            indicatorWeight: 1.0,
+            tabs: [
+              const Tab(
+                text: "聊天",
+              ),
+              const Tab(
+                text: "关注",
+              ),
+              const Tab(
+                text: "设置",
+              ),
+            ],
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: controller.messageTabController,
+              children: [
+                Obx(
+                  () => Stack(
+                    children: [
+                      NotificationListener<ScrollMetricsNotification>(
+                        onNotification: (_) {
+                          controller.scheduleChatScrollToBottom();
+                          return false;
+                        },
+                        child: ListView.separated(
                           controller: controller.scrollController,
                           separatorBuilder: (_, i) => Obx(
                             () => SizedBox(
@@ -346,31 +342,32 @@ class LiveRoomPage extends GetView<LiveRoomController> {
                             return buildMessageItem(item);
                           },
                         ),
-                        Visibility(
-                          visible: controller.disableAutoScroll.value,
-                          child: Positioned(
-                            right: 12,
-                            bottom: 12,
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                controller.disableAutoScroll.value = false;
-                                controller.chatScrollToBottom();
-                              },
-                              icon: const Icon(Icons.expand_more),
-                              label: const Text("最新"),
-                            ),
+                      ),
+                      Visibility(
+                        visible: controller.disableAutoScroll.value,
+                        child: Positioned(
+                          right: 12,
+                          bottom: 12,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              controller.scheduleChatScrollToBottom(
+                                resetAutoScroll: true,
+                              );
+                            },
+                            icon: const Icon(Icons.expand_more),
+                            label: const Text("最新"),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  buildFollowList(),
-                  buildSettings(),
-                ],
-              ),
+                ),
+                buildFollowList(),
+                buildSettings(),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -653,26 +650,6 @@ class LiveRoomPage extends GetView<LiveRoomController> {
                 Get.back();
                 controller.showPlayerSettingsSheet();
               },
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text("截图"),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () {
-                controller.saveScreenshot();
-              },
-            ),
-            Visibility(
-              visible: Platform.isAndroid,
-              child: ListTile(
-                leading: const Icon(Icons.picture_in_picture),
-                title: const Text("小窗播放"),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Get.back();
-                  controller.enablePIP();
-                },
-              ),
             ),
             ListTile(
               leading: const Icon(Icons.timer_outlined),
